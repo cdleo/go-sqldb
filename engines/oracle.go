@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cdleo/go-commons/sqlcommons"
+	"github.com/cdleo/go-sqldb"
 	"github.com/godror/godror"
 )
 
@@ -17,7 +18,7 @@ type oracleConn struct {
 
 const oracle_DriverName = "godror"
 
-func NewOracleSqlConn(host string, port int, user string, password string, database string) sqlcommons.SQLEngineAdapter {
+func NewOracleSqlConn(host string, port int, user string, password string, database string) sqldb.SQLEngineAdapter {
 
 	return &oracleConn{
 		connString: fmt.Sprintf("(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=%s)(PORT=%d))(CONNECT_DATA=(%s)))", host, port, database),
@@ -26,7 +27,7 @@ func NewOracleSqlConn(host string, port int, user string, password string, datab
 	}
 }
 
-func NewOracleTNSSqlConn(tnsName string, user string, password string) sqlcommons.SQLEngineAdapter {
+func NewOracleTNSSqlConn(tnsName string, user string, password string) sqldb.SQLEngineAdapter {
 
 	return &oracleConn{
 		connString: fmt.Sprintf("connectString=%s", tnsName),

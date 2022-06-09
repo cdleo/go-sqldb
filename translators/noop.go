@@ -1,12 +1,10 @@
 package translators
 
-import (
-	"github.com/cdleo/go-commons/sqlcommons"
-)
+import "github.com/cdleo/go-sqldb"
 
 type noopTranslator struct{}
 
-func NewNoopTranslator() sqlcommons.SQLSyntaxTranslator {
+func NewNoopTranslator() sqldb.SQLSyntaxTranslator {
 	return &noopTranslator{}
 }
 

@@ -1,6 +1,9 @@
 package sqldb
 
-import "database/sql"
+import (
+	"database/sql"
+	"database/sql/driver"
+)
 
 //Implemented Engines
 const (
@@ -9,6 +12,18 @@ const (
 	SQLite3_Engine    = "SQLite3"
 	MockDB_Engine     = "MockDB"
 )
+
+type MockSQLEngineAdapter interface {
+	SQLEngineAdapter
+
+	PatchBegin(err error)
+	PatchCommit(err error)
+	PatchRollback(err error)
+
+	PatchExec(query string, err error, args ...driver.Value)
+	PatchQuery(query string, columns []string, values []driver.Value, err error, args ...driver.Value)
+	PatchQueryRow(query string, result map[string]string, err error)
+}
 
 //go:generate mockgen -package enginesMocks -destination engines/mocks/sqlEngineAdapter.go . SQLEngineAdapter
 type SQLEngineAdapter interface {

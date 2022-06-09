@@ -8,6 +8,7 @@ import (
 
 	"github.com/cdleo/go-commons/sqlcommons"
 	"github.com/cdleo/go-sqldb"
+	"github.com/cdleo/go-sqldb/engines"
 	enginesMocks "github.com/cdleo/go-sqldb/engines/mocks"
 	translatorsMocks "github.com/cdleo/go-sqldb/translators/mocks"
 	"github.com/golang/mock/gomock"
@@ -23,7 +24,7 @@ type Customers struct {
 	Dummy      string          `db:"not_existing_field"`
 }
 
-func Test_sqlConn_Init(t *testing.T) {
+func Test_sqlConn_InitErr(t *testing.T) {
 	// Setup
 	controller := gomock.NewController(t)
 
@@ -34,6 +35,17 @@ func Test_sqlConn_Init(t *testing.T) {
 
 	sqlConn := sqldb.NewSQLDB(adapter, translator)
 	require.Error(t, sqlConn.Open())
+}
+
+func Test_sqlConn_InitOK(t *testing.T) {
+	// Setup
+	controller := gomock.NewController(t)
+
+	adapter := engines.NewMockDBSqlAdapter()
+	translator := translatorsMocks.NewMockSQLSyntaxTranslator(controller)
+
+	sqlConn := sqldb.NewSQLDB(adapter, translator)
+	require.NoError(t, sqlConn.Open())
 }
 
 /*
