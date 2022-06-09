@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cdleo/go-commons/sqlcommons"
+	"github.com/cdleo/go-sqldb"
 	"github.com/lib/pq"
 )
 
@@ -17,7 +18,7 @@ type pgSqlConn struct {
 
 const postgresql_DriverName = "postgres"
 
-func NewPostgreSqlAdapter(host string, port int, user string, password string, database string) sqlcommons.SQLEngineAdapter {
+func NewPostgreSqlAdapter(host string, port int, user string, password string, database string) sqldb.SQLEngineAdapter {
 
 	return &pgSqlConn{
 		url:      fmt.Sprintf("%s:%d", host, port),

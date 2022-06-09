@@ -4,7 +4,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cdleo/go-commons/sqlcommons"
 	"github.com/cdleo/go-sqldb"
 )
 
@@ -13,7 +12,7 @@ type postgresTranslator struct {
 	fromEngine  string
 }
 
-func NewPostgresTranslator(fromEngine string) sqlcommons.SQLSyntaxTranslator {
+func NewPostgresTranslator(fromEngine string) sqldb.SQLSyntaxTranslator {
 	return &postgresTranslator{
 		regexp.MustCompile(":[1-9]"),
 		fromEngine,
