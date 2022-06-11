@@ -25,7 +25,6 @@ type MockSQLEngineAdapter interface {
 	PatchQueryRow(query string, result map[string]string, err error)
 }
 
-//go:generate mockgen -package enginesMocks -destination engines/mocks/sqlEngineAdapter.go . SQLEngineAdapter
 type SQLEngineAdapter interface {
 	Open() (*sql.DB, error)
 	ErrorHandler(err error) error

@@ -37,7 +37,8 @@ func (s *sqlite3Conn) ErrorHandler(err error) error {
 
 		} else if sqliteError.Code == 19 { //SQLITE_CONSTRAINT
 			if sqliteError.ExtendedCode == 787 || /*SQLITE_CONSTRAINT_FOREIGNKEY*/
-				sqliteError.ExtendedCode == 1555 { /*SQLITE_CONSTRAINT_PRIMARYKEY*/
+				sqliteError.ExtendedCode == 1555 || /*SQLITE_CONSTRAINT_PRIMARYKEY*/
+				sqliteError.ExtendedCode == 1811 /*SQLITE_CONSTRAINT_TRIGGER*/ {
 				return sqlcommons.IntegrityConstraintViolation
 
 			} else if sqliteError.ExtendedCode == 1299 { //SQLITE_CONSTRAINT_NOTNULL
