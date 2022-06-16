@@ -1,6 +1,6 @@
 module github.com/cdleo/go-sqldb
 
-go 1.18
+go 1.15
 
 require (
 	github.com/cdleo/go-commons v0.0.0-20220525230837-3a068efff7c6
