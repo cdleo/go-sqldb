@@ -9,23 +9,23 @@ import (
 )
 
 type sqlDB struct {
-	engineAdapter sqlcommons.SQLEngineAdapter
-	translator    sqlcommons.SQLSyntaxTranslator
+	engineAdapter SQLEngineAdapter
+	translator    SQLSyntaxTranslator
 	db            *sql.DB
 }
 
 type sqlTx struct {
-	adapter    sqlcommons.SQLEngineAdapter
-	translator sqlcommons.SQLSyntaxTranslator
+	adapter    SQLEngineAdapter
+	translator SQLSyntaxTranslator
 	tx         *sql.Tx
 }
 
 type sqlStmt struct {
-	adapter sqlcommons.SQLEngineAdapter
+	adapter SQLEngineAdapter
 	stmt    *sql.Stmt
 }
 
-func NewSQLDB(adapter sqlcommons.SQLEngineAdapter, translator sqlcommons.SQLSyntaxTranslator) sqlcommons.SQLClient {
+func NewSQLDB(adapter SQLEngineAdapter, translator SQLSyntaxTranslator) sqlcommons.SQLClient {
 	return &sqlDB{
 		adapter,
 		translator,
@@ -137,7 +137,7 @@ func (s *sqlDB) QueryRowContext(ctx context.Context, query string, args ...inter
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------- */
-func newSQLTx(tx *sql.Tx, translator sqlcommons.SQLSyntaxTranslator, adapter sqlcommons.SQLEngineAdapter) sqlcommons.SQLTx {
+func newSQLTx(tx *sql.Tx, translator SQLSyntaxTranslator, adapter SQLEngineAdapter) sqlcommons.SQLTx {
 	return &sqlTx{
 		adapter,
 		translator,
@@ -193,7 +193,7 @@ func (s *sqlTx) Rollback() error {
 }
 
 /* ---------------------------------------------------------------------------------------------------------------------- */
-func newSQLStmt(stmt *sql.Stmt, adapter sqlcommons.SQLEngineAdapter) sqlcommons.SQLStmt {
+func newSQLStmt(stmt *sql.Stmt, adapter SQLEngineAdapter) sqlcommons.SQLStmt {
 	return &sqlStmt{
 		adapter,
 		stmt,
