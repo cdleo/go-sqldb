@@ -6,7 +6,7 @@ go-sqlDB it's a muti DB Engine wrapper for the GO **database/sql** package. It p
 Besides that, provides a very limited cross-engine sql translator.
 
 ## General
-The sqlClient contract resides on the go-commons repository: [github.com/cdleo/go-commons/sqlcommons/sqlClient.go](https://ithub.com/cdleo/go-commons/sqlcommons/sqlClient.go):
+The sqlClient contract resides on the go-commons repository: [github.com/cdleo/go-commons/sqlcommons/sqlClient.go](https://github.com/cdleo/go-commons/sqlcommons/sqlClient.go):
 ```go
 type SQLClient interface {
 	Open() error
