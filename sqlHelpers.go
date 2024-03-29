@@ -3,15 +3,41 @@ package sqldb
 import (
 	"database/sql"
 	"database/sql/driver"
+
+	"github.com/cdleo/go-commons/logger"
 )
 
-//Implemented Engines
+type DBEngine string
+
 const (
-	Oracle_Engine     = "Oracle"
-	PostgreSQL_Engine = "PostgreSQL"
-	SQLite3_Engine    = "SQLite3"
-	MockDB_Engine     = "MockDB"
+	Oracle     DBEngine = "Oracle"
+	PostgreSQL DBEngine = "PostgreSQL"
+	SQLite3    DBEngine = "SQLite3"
+	MockDB     DBEngine = "MockDB"
 )
+
+var DBEngines = []DBEngine{
+	Oracle,
+	PostgreSQL,
+	SQLite3,
+	MockDB,
+}
+
+type SQLSintaxTranslator string
+
+const (
+	None         SQLSintaxTranslator = "None"
+	ToOracle     SQLSintaxTranslator = "ToOracle"
+	ToPostgreSQL SQLSintaxTranslator = "ToPostgreSQL"
+	ToSQLite3    SQLSintaxTranslator = "ToSQLite3"
+)
+
+var SQLSintaxTranslators = []SQLSintaxTranslator{
+	None,
+	ToOracle,
+	ToPostgreSQL,
+	ToSQLite3,
+}
 
 type MockSQLEngineAdapter interface {
 	SQLEngineAdapter
@@ -26,11 +52,11 @@ type MockSQLEngineAdapter interface {
 }
 
 type SQLEngineAdapter interface {
-	Open() (*sql.DB, error)
-	ErrorHandler(err error) error
+	Open(logger logger.Logger, translator SQLSyntaxTranslator) (*sql.DB, error)
 }
 
 //go:generate mockgen -package translatorsMocks -destination translators/mocks/sqlSyntaxTranslator.go . SQLSyntaxTranslator
 type SQLSyntaxTranslator interface {
 	Translate(query string) string
+	ErrorHandler(err error) error
 }

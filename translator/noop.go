@@ -1,4 +1,4 @@
-package translators
+package translator
 
 import "github.com/cdleo/go-sqldb"
 
@@ -10,4 +10,8 @@ func NewNoopTranslator() sqldb.SQLSyntaxTranslator {
 
 func (t *noopTranslator) Translate(query string) string {
 	return query
+}
+
+func (s *noopTranslator) ErrorHandler(err error) error {
+	return err
 }

@@ -1,63 +1,86 @@
 package engines
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"database/sql"
 	"fmt"
 
-	"github.com/cdleo/go-commons/sqlcommons"
+	"github.com/cdleo/go-commons/logger"
 	"github.com/cdleo/go-sqldb"
-	"github.com/lib/pq"
+	pgx "github.com/jackc/pgx/v4"
+	stdlib "github.com/jackc/pgx/v4/stdlib"
 )
 
 type pgSqlConn struct {
-	url      string
-	user     string
-	password string
-	database string
+	host      string
+	port      int
+	user      string
+	password  string
+	database  string
+	sslMode   string
+	TLSConfig *tls.Config
 }
 
-const postgresql_DriverName = "postgres"
+const postgresProxyName = "pgx-proxy"
 
 func NewPostgreSqlAdapter(host string, port int, user string, password string, database string) sqldb.SQLEngineAdapter {
 
 	return &pgSqlConn{
-		url:      fmt.Sprintf("%s:%d", host, port),
+		host:     host,
+		port:     port,
 		user:     user,
 		password: password,
 		database: database,
+		sslMode:  "disable",
 	}
 }
 
-func (s *pgSqlConn) Open() (*sql.DB, error) {
-	dataSourceName := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", s.user, s.password, s.url, s.database)
-	return sql.Open(postgresql_DriverName, dataSourceName)
-}
+func (s *pgSqlConn) WithTLS(sslMode string, allowInsecure bool, serverName string, serverCertificate string, clientCertificate string, clientKey string) error {
 
-func (s *pgSqlConn) ErrorHandler(err error) error {
-	if err == nil {
-		return nil
+	config := &tls.Config{
+		InsecureSkipVerify: allowInsecure,
+		ServerName:         serverName,
 	}
 
-	if pqError, ok := err.(*pq.Error); ok {
-		switch pqError.Code {
-		case "23505":
-			return sqlcommons.UniqueConstraintViolation
-		case "23503":
-			return sqlcommons.IntegrityConstraintViolation
-		case "22001":
-			return sqlcommons.ValueTooLargeForColumn
-		case "22003":
-			return sqlcommons.ValueLargerThanPrecision
-		case "23502":
-			return sqlcommons.CannotSetNullColumn
-		case "22P02":
-			return sqlcommons.InvalidNumericValue
-		case "21000":
-			return sqlcommons.SubqueryReturnsMoreThanOneRow
-		default:
-			return fmt.Errorf("Unhandled PostgreSQL error. Code:[%s] Desc:[%s]", pqError.Code, pqError.Message)
+	if serverCertificate != "" {
+		caCertPool := x509.NewCertPool()
+		ok := caCertPool.AppendCertsFromPEM([]byte(serverCertificate))
+		if !ok {
+			return fmt.Errorf("unable to append Certs from PEM")
 		}
-	} else {
-		return err
+		config.RootCAs = caCertPool
 	}
+
+	if clientCertificate != "" && clientKey != "" {
+		keypair, err := tls.X509KeyPair([]byte(clientCertificate), []byte(clientKey))
+		if err != nil {
+			return fmt.Errorf("unable to create keypair of client [%v]", err)
+		}
+		config.Certificates = []tls.Certificate{keypair}
+	}
+
+	s.TLSConfig = config
+	s.sslMode = sslMode
+	return nil
+}
+
+func (s *pgSqlConn) Open(logger logger.Logger, translator sqldb.SQLSyntaxTranslator) (*sql.DB, error) {
+
+	registerProxy(postgresProxyName, logger, translator, stdlib.GetDefaultDriver())
+
+	psqlConn := fmt.Sprintf("host=%v port=%v user=%v password=%v dbname=%v sslmode=%v", s.host, s.port, s.user, s.password, s.database, s.sslMode)
+
+	config, err := pgx.ParseConfig(psqlConn)
+	if err != nil {
+		return nil, err
+	}
+	config.TLSConfig = s.TLSConfig
+
+	dbURI := stdlib.RegisterConnConfig(config)
+	dbPool, err := sql.Open(postgresProxyName, dbURI)
+	if err != nil {
+		return nil, fmt.Errorf("sql.Open: %w", err)
+	}
+	return dbPool, nil
 }

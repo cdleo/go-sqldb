@@ -1,13 +1,14 @@
 package sqldb_test
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"strconv"
 
 	"github.com/cdleo/go-sqldb"
 	"github.com/cdleo/go-sqldb/engines"
-	"github.com/cdleo/go-sqldb/translators"
+	"github.com/cdleo/go-sqldb/translator"
 )
 
 type People struct {
@@ -19,16 +20,20 @@ type People struct {
 func Example_sqlConn() {
 
 	adapter := engines.NewSqlite3Adapter(":memory:")
-	translator := translators.NewNoopTranslator()
-	sqlConn := sqldb.NewSQLDB(adapter, translator)
+	translator := translator.NewSQLite3Translator()
+	logger := sqldb.NewNoLogLogger()
+	sqlConn := sqldb.NewSQLDB(adapter, translator, logger)
 
-	if err := sqlConn.Open(); err != nil {
+	var sqlDB *sql.DB
+	var err error
+
+	if sqlDB, err = sqlConn.Open(); err != nil {
 		fmt.Println("Unable to connect to DB")
 		os.Exit(1)
 	}
 	defer sqlConn.Close()
 
-	statement, err := sqlConn.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
+	statement, err := sqlDB.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
 	if err != nil {
 		fmt.Printf("Unable to prepare statement %v\n", err)
 		os.Exit(1)
@@ -39,7 +44,7 @@ func Example_sqlConn() {
 		os.Exit(1)
 	}
 
-	statement, err = sqlConn.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
+	statement, err = sqlDB.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
 	if err != nil {
 		fmt.Printf("Unable to prepare statement %v\n", err)
 		os.Exit(1)
@@ -50,7 +55,7 @@ func Example_sqlConn() {
 		os.Exit(1)
 	}
 
-	rows, err := sqlConn.Query("SELECT id, firstname, lastname FROM people")
+	rows, err := sqlDB.Query("SELECT id, firstname, lastname FROM people")
 	if err != nil {
 		fmt.Printf("Unable to query data %v\n", err)
 		os.Exit(1)

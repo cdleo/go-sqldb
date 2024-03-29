@@ -1,10 +1,11 @@
-package enginesMocks
+package engines
 
 import (
 	"database/sql"
 	"database/sql/driver"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/cdleo/go-commons/logger"
 	"github.com/cdleo/go-commons/sqlcommons"
 	"github.com/cdleo/go-sqldb"
 )
@@ -14,7 +15,7 @@ type mockDBSqlConn struct {
 	mock   sqlmock.Sqlmock
 }
 
-func NewMockSQLEngineAdapter(initOk bool) sqldb.MockSQLEngineAdapter {
+func NewMockSQLAdapter(initOk bool) sqldb.MockSQLEngineAdapter {
 
 	return &mockDBSqlConn{
 		initOk,
@@ -22,7 +23,8 @@ func NewMockSQLEngineAdapter(initOk bool) sqldb.MockSQLEngineAdapter {
 	}
 }
 
-func (s *mockDBSqlConn) Open() (*sql.DB, error) {
+func (s *mockDBSqlConn) Open(logger logger.Logger, translator sqldb.SQLSyntaxTranslator) (*sql.DB, error) {
+
 	if s.initOk {
 		db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
 		s.mock = mock
@@ -30,7 +32,6 @@ func (s *mockDBSqlConn) Open() (*sql.DB, error) {
 	} else {
 		return nil, sqlcommons.ConnectionFailed
 	}
-
 }
 
 func (s *mockDBSqlConn) ErrorHandler(err error) error {
