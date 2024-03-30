@@ -1,39 +1,38 @@
-package engines
+package adapter
 
 import (
-	"database/sql"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/cdleo/go-commons/sqlcommons"
-	"github.com/cdleo/go-sqldb"
 	"github.com/lib/pq"
 )
 
-type pgSqlConn struct {
-	url      string
-	user     string
-	password string
-	database string
+type postgresAdapter struct {
+	paramRegExp     *regexp.Regexp
+	sourceSQLSintax string
 }
 
-const postgresql_DriverName = "postgres"
-
-func NewPostgreSqlAdapter(host string, port int, user string, password string, database string) sqldb.SQLEngineAdapter {
-
-	return &pgSqlConn{
-		url:      fmt.Sprintf("%s:%d", host, port),
-		user:     user,
-		password: password,
-		database: database,
+func NewPostgresAdapter(sourceSQLSintax string) sqlcommons.SQLAdapter {
+	return &postgresAdapter{
+		regexp.MustCompile(":[1-9]"),
+		sourceSQLSintax,
 	}
 }
 
-func (s *pgSqlConn) Open() (*sql.DB, error) {
-	dataSourceName := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", s.user, s.password, s.url, s.database)
-	return sql.Open(postgresql_DriverName, dataSourceName)
+func (s *postgresAdapter) Translate(query string) string {
+
+	if s.sourceSQLSintax == "Oracle" {
+		return s.paramRegExp.ReplaceAllStringFunc(query, func(m string) string {
+			return strings.Replace(m, ":", "$", 1)
+		})
+	} else {
+		return query
+	}
 }
 
-func (s *pgSqlConn) ErrorHandler(err error) error {
+func (s *postgresAdapter) ErrorHandler(err error) error {
 	if err == nil {
 		return nil
 	}

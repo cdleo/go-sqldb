@@ -1,36 +1,33 @@
-package sqldb
+package sqlproxy
 
-import (
-	"database/sql"
-	"database/sql/driver"
-)
+type DBEngine string
 
-//Implemented Engines
 const (
-	Oracle_Engine     = "Oracle"
-	PostgreSQL_Engine = "PostgreSQL"
-	SQLite3_Engine    = "SQLite3"
-	MockDB_Engine     = "MockDB"
+	Oracle     DBEngine = "Oracle"
+	PostgreSQL DBEngine = "PostgreSQL"
+	SQLite3    DBEngine = "SQLite3"
+	MockDB     DBEngine = "MockDB"
 )
 
-type MockSQLEngineAdapter interface {
-	SQLEngineAdapter
-
-	PatchBegin(err error)
-	PatchCommit(err error)
-	PatchRollback(err error)
-
-	PatchExec(query string, err error, args ...driver.Value)
-	PatchQuery(query string, columns []string, values []driver.Value, err error, args ...driver.Value)
-	PatchQueryRow(query string, result map[string]string, err error)
+var DBEngines = []DBEngine{
+	Oracle,
+	PostgreSQL,
+	SQLite3,
+	MockDB,
 }
 
-type SQLEngineAdapter interface {
-	Open() (*sql.DB, error)
-	ErrorHandler(err error) error
-}
+type SQLSintaxTranslator string
 
-//go:generate mockgen -package translatorsMocks -destination translators/mocks/sqlSyntaxTranslator.go . SQLSyntaxTranslator
-type SQLSyntaxTranslator interface {
-	Translate(query string) string
+const (
+	None         SQLSintaxTranslator = "None"
+	ToOracle     SQLSintaxTranslator = "ToOracle"
+	ToPostgreSQL SQLSintaxTranslator = "ToPostgreSQL"
+	ToSQLite3    SQLSintaxTranslator = "ToSQLite3"
+)
+
+var SQLSintaxTranslators = []SQLSintaxTranslator{
+	None,
+	ToOracle,
+	ToPostgreSQL,
+	ToSQLite3,
 }
