@@ -1,13 +1,14 @@
-package engines
+package connector
 
 import (
 	"crypto/tls"
 	"crypto/x509"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/cdleo/go-commons/logger"
-	"github.com/cdleo/go-sqldb"
+	"github.com/cdleo/go-commons/sqlcommons"
 	pgx "github.com/jackc/pgx/v4"
 	stdlib "github.com/jackc/pgx/v4/stdlib"
 )
@@ -24,7 +25,7 @@ type pgSqlConn struct {
 
 const postgresProxyName = "pgx-proxy"
 
-func NewPostgreSqlAdapter(host string, port int, user string, password string, database string) sqldb.SQLEngineAdapter {
+func NewPostgreSqlConnector(host string, port int, user string, password string, database string) sqlcommons.SQLConnector {
 
 	return &pgSqlConn{
 		host:     host,
@@ -65,7 +66,7 @@ func (s *pgSqlConn) WithTLS(sslMode string, allowInsecure bool, serverName strin
 	return nil
 }
 
-func (s *pgSqlConn) Open(logger logger.Logger, translator sqldb.SQLSyntaxTranslator) (*sql.DB, error) {
+func (s *pgSqlConn) Open(logger logger.Logger, translator sqlcommons.SQLAdapter) (*sql.DB, error) {
 
 	registerProxy(postgresProxyName, logger, translator, stdlib.GetDefaultDriver())
 
@@ -83,4 +84,8 @@ func (s *pgSqlConn) Open(logger logger.Logger, translator sqldb.SQLSyntaxTransla
 		return nil, fmt.Errorf("sql.Open: %w", err)
 	}
 	return dbPool, nil
+}
+
+func (s *pgSqlConn) GetNextSequenceQuery(sequenceName string) string {
+	return fmt.Sprintf("SELECT nextval('%s')", strings.ToLower(sequenceName))
 }

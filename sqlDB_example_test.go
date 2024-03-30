@@ -1,4 +1,4 @@
-package sqldb_test
+package sqlproxy
 
 import (
 	"database/sql"
@@ -6,9 +6,9 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/cdleo/go-sqldb"
-	"github.com/cdleo/go-sqldb/engines"
-	"github.com/cdleo/go-sqldb/translator"
+	"github.com/cdleo/go-commons/logger"
+	"github.com/cdleo/go-sqldb/adapter"
+	"github.com/cdleo/go-sqldb/connector"
 )
 
 type People struct {
@@ -17,21 +17,21 @@ type People struct {
 	Apellido string `db:"lastname"`
 }
 
-func Example_sqlConn() {
+func Example_sqlDBBuilder() {
 
-	adapter := engines.NewSqlite3Adapter(":memory:")
-	translator := translator.NewSQLite3Translator()
-	logger := sqldb.NewNoLogLogger()
-	sqlConn := sqldb.NewSQLDB(adapter, translator, logger)
+	sqlProxy := NewSQLProxyBuilder(connector.NewSqlite3Connector(":memory:")).
+		WithAdapter(adapter.NewSQLite3Adapter()).
+		WithLogger(logger.NewNoLogLogger()).
+		Build()
 
 	var sqlDB *sql.DB
 	var err error
 
-	if sqlDB, err = sqlConn.Open(); err != nil {
+	if sqlDB, err = sqlProxy.Open(); err != nil {
 		fmt.Println("Unable to connect to DB")
 		os.Exit(1)
 	}
-	defer sqlConn.Close()
+	defer sqlProxy.Close()
 
 	statement, err := sqlDB.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
 	if err != nil {

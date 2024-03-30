@@ -1,4 +1,4 @@
-package translator
+package adapter
 
 import (
 	"fmt"
@@ -6,23 +6,22 @@ import (
 	"strings"
 
 	"github.com/cdleo/go-commons/sqlcommons"
-	"github.com/cdleo/go-sqldb"
 	"github.com/lib/pq"
 )
 
-type postgresTranslator struct {
+type postgresAdapter struct {
 	paramRegExp     *regexp.Regexp
 	sourceSQLSintax string
 }
 
-func NewPostgresTranslator(sourceSQLSintax string) sqldb.SQLSyntaxTranslator {
-	return &postgresTranslator{
+func NewPostgresAdapter(sourceSQLSintax string) sqlcommons.SQLAdapter {
+	return &postgresAdapter{
 		regexp.MustCompile(":[1-9]"),
 		sourceSQLSintax,
 	}
 }
 
-func (s *postgresTranslator) Translate(query string) string {
+func (s *postgresAdapter) Translate(query string) string {
 
 	if s.sourceSQLSintax == "Oracle" {
 		return s.paramRegExp.ReplaceAllStringFunc(query, func(m string) string {
@@ -33,7 +32,7 @@ func (s *postgresTranslator) Translate(query string) string {
 	}
 }
 
-func (s *postgresTranslator) ErrorHandler(err error) error {
+func (s *postgresAdapter) ErrorHandler(err error) error {
 	if err == nil {
 		return nil
 	}

@@ -1,24 +1,23 @@
-package translator
+package adapter
 
 import (
 	"fmt"
 
 	"github.com/cdleo/go-commons/sqlcommons"
-	"github.com/cdleo/go-sqldb"
 	"github.com/godror/godror"
 )
 
-type oracleTranslator struct{}
+type oracleAdapter struct{}
 
-func NewOracleTranslator() sqldb.SQLSyntaxTranslator {
-	return &oracleTranslator{}
+func NewOracleAdapter() sqlcommons.SQLAdapter {
+	return &oracleAdapter{}
 }
 
-func (t *oracleTranslator) Translate(query string) string {
+func (t *oracleAdapter) Translate(query string) string {
 	return query
 }
 
-func (s *oracleTranslator) ErrorHandler(err error) error {
+func (s *oracleAdapter) ErrorHandler(err error) error {
 	if err == nil {
 		return nil
 	}

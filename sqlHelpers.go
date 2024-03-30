@@ -1,11 +1,4 @@
-package sqldb
-
-import (
-	"database/sql"
-	"database/sql/driver"
-
-	"github.com/cdleo/go-commons/logger"
-)
+package sqlproxy
 
 type DBEngine string
 
@@ -37,26 +30,4 @@ var SQLSintaxTranslators = []SQLSintaxTranslator{
 	ToOracle,
 	ToPostgreSQL,
 	ToSQLite3,
-}
-
-type MockSQLEngineAdapter interface {
-	SQLEngineAdapter
-
-	PatchBegin(err error)
-	PatchCommit(err error)
-	PatchRollback(err error)
-
-	PatchExec(query string, err error, args ...driver.Value)
-	PatchQuery(query string, columns []string, values []driver.Value, err error, args ...driver.Value)
-	PatchQueryRow(query string, result map[string]string, err error)
-}
-
-type SQLEngineAdapter interface {
-	Open(logger logger.Logger, translator SQLSyntaxTranslator) (*sql.DB, error)
-}
-
-//go:generate mockgen -package translatorsMocks -destination translators/mocks/sqlSyntaxTranslator.go . SQLSyntaxTranslator
-type SQLSyntaxTranslator interface {
-	Translate(query string) string
-	ErrorHandler(err error) error
 }

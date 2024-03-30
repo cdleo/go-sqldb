@@ -1,24 +1,23 @@
-package translator
+package adapter
 
 import (
 	"fmt"
 
 	"github.com/cdleo/go-commons/sqlcommons"
-	"github.com/cdleo/go-sqldb"
 	"github.com/mattn/go-sqlite3"
 )
 
-type sqlite3Translator struct{}
+type sqlite3Adapter struct{}
 
-func NewSQLite3Translator() sqldb.SQLSyntaxTranslator {
-	return &sqlite3Translator{}
+func NewSQLite3Adapter() sqlcommons.SQLAdapter {
+	return &sqlite3Adapter{}
 }
 
-func (t *sqlite3Translator) Translate(query string) string {
+func (t *sqlite3Adapter) Translate(query string) string {
 	return query
 }
 
-func (s *sqlite3Translator) ErrorHandler(err error) error {
+func (s *sqlite3Adapter) ErrorHandler(err error) error {
 
 	if sqliteError, ok := err.(sqlite3.Error); ok {
 

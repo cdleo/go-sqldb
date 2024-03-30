@@ -1,4 +1,4 @@
-package engines
+package connector
 
 import (
 	"context"
@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/cdleo/go-commons/logger"
+	"github.com/cdleo/go-commons/sqlcommons"
 	proxy "github.com/cdleo/go-sql-proxy"
-	"github.com/cdleo/go-sqldb"
 )
 
-func registerProxy(name string, logger logger.Logger, translator sqldb.SQLSyntaxTranslator, sqlDriver driver.Driver) {
+func registerProxy(name string, logger logger.Logger, translator sqlcommons.SQLAdapter, sqlDriver driver.Driver) {
 
 	drivers := sql.Drivers()
 	for _, item := range drivers {

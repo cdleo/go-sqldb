@@ -1,4 +1,4 @@
-package engines
+package connector
 
 import (
 	"database/sql"
@@ -7,7 +7,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/cdleo/go-commons/logger"
 	"github.com/cdleo/go-commons/sqlcommons"
-	"github.com/cdleo/go-sqldb"
 )
 
 type mockDBSqlConn struct {
@@ -15,7 +14,7 @@ type mockDBSqlConn struct {
 	mock   sqlmock.Sqlmock
 }
 
-func NewMockSQLAdapter(initOk bool) sqldb.MockSQLEngineAdapter {
+func NewMockSQLConnector(initOk bool) sqlcommons.MockSQLConnector {
 
 	return &mockDBSqlConn{
 		initOk,
@@ -23,7 +22,7 @@ func NewMockSQLAdapter(initOk bool) sqldb.MockSQLEngineAdapter {
 	}
 }
 
-func (s *mockDBSqlConn) Open(logger logger.Logger, translator sqldb.SQLSyntaxTranslator) (*sql.DB, error) {
+func (s *mockDBSqlConn) Open(logger logger.Logger, translator sqlcommons.SQLAdapter) (*sql.DB, error) {
 
 	if s.initOk {
 		db, mock, err := sqlmock.New(sqlmock.QueryMatcherOption(sqlmock.QueryMatcherEqual))
@@ -34,8 +33,8 @@ func (s *mockDBSqlConn) Open(logger logger.Logger, translator sqldb.SQLSyntaxTra
 	}
 }
 
-func (s *mockDBSqlConn) ErrorHandler(err error) error {
-	return err
+func (s *mockDBSqlConn) GetNextSequenceQuery(sequenceName string) string {
+	return sequenceName
 }
 
 func (s *mockDBSqlConn) PatchBegin(err error) {
