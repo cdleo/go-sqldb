@@ -6,13 +6,13 @@ import (
 	"github.com/cdleo/go-sqldb/adapter"
 )
 
-type sqlProxyBuilder struct {
-	proxy sqlProxy
+type SQLProxyBuilder struct {
+	proxy SQLProxy
 }
 
-func NewSQLProxyBuilder(connector sqlcommons.SQLConnector) *sqlProxyBuilder {
-	return &sqlProxyBuilder{
-		proxy: sqlProxy{
+func NewSQLProxyBuilder(connector sqlcommons.SQLConnector) *SQLProxyBuilder {
+	return &SQLProxyBuilder{
+		proxy: SQLProxy{
 			connector:  connector,
 			translator: adapter.NewNoopAdapter(),
 			logger:     logger.NewNoLogLogger(),
@@ -21,16 +21,16 @@ func NewSQLProxyBuilder(connector sqlcommons.SQLConnector) *sqlProxyBuilder {
 	}
 }
 
-func (s *sqlProxyBuilder) WithAdapter(translator sqlcommons.SQLAdapter) *sqlProxyBuilder {
+func (s *SQLProxyBuilder) WithAdapter(translator sqlcommons.SQLAdapter) *SQLProxyBuilder {
 	s.proxy.translator = translator
 	return s
 }
 
-func (s *sqlProxyBuilder) WithLogger(logger logger.Logger) *sqlProxyBuilder {
+func (s *SQLProxyBuilder) WithLogger(logger logger.Logger) *SQLProxyBuilder {
 	s.proxy.logger = logger
 	return s
 }
 
-func (s *sqlProxyBuilder) Build() *sqlProxy {
+func (s *SQLProxyBuilder) Build() *SQLProxy {
 	return &s.proxy
 }

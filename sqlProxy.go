@@ -9,14 +9,14 @@ import (
 	"github.com/cdleo/go-commons/sqlcommons"
 )
 
-type sqlProxy struct {
+type SQLProxy struct {
 	connector  sqlcommons.SQLConnector
 	translator sqlcommons.SQLAdapter
 	logger     logger.Logger
 	db         *sql.DB
 }
 
-func (s *sqlProxy) Open() (*sql.DB, error) {
+func (s *SQLProxy) Open() (*sql.DB, error) {
 	if db, err := s.connector.Open(s.logger, s.translator); err != nil {
 		return nil, s.translator.ErrorHandler(err)
 	} else {
@@ -26,7 +26,7 @@ func (s *sqlProxy) Open() (*sql.DB, error) {
 	return s.db, nil
 }
 
-func (s *sqlProxy) IsOpen() error {
+func (s *SQLProxy) IsOpen() error {
 	if s.db == nil {
 		return sqlcommons.DBNotInitialized
 	}
@@ -47,7 +47,7 @@ func (s *sqlProxy) IsOpen() error {
 	return nil
 }
 
-func (s *sqlProxy) Close() error {
+func (s *SQLProxy) Close() error {
 
 	if s.db == nil {
 		return sqlcommons.DBNotInitialized
@@ -58,7 +58,7 @@ func (s *sqlProxy) Close() error {
 	return err
 }
 
-func (s *sqlProxy) GetNextSequenceValue(ctx context.Context, sequenceName string) (int64, error) {
+func (s *SQLProxy) GetNextSequenceValue(ctx context.Context, sequenceName string) (int64, error) {
 	if err := s.IsOpen(); err != nil {
 		return 0, sqlcommons.ConnectionClosed
 	}
