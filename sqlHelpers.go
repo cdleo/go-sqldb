@@ -1,4 +1,4 @@
-package sqlproxy
+package sqldb
 
 type DBEngine string
 
