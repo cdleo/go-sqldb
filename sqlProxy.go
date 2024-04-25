@@ -1,4 +1,4 @@
-package sqlproxy
+package sqldb
 
 import (
 	"context"

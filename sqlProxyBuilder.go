@@ -1,4 +1,4 @@
-package sqlproxy
+package sqldb
 
 import (
 	"github.com/cdleo/go-commons/logger"

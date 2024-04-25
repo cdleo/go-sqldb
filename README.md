@@ -2,32 +2,12 @@
 
 [![Go Reference](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://pkg.go.dev/github.com/cdleo/go-sqldb) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/cdleo/go-sqldb/master/LICENSE) [![Build Status](https://scrutinizer-ci.com/g/cdleo/go-sqldb/badges/build.png?b=main)](https://scrutinizer-ci.com/g/cdleo/go-sqldb/build-status/main) [![Code Coverage](https://scrutinizer-ci.com/g/cdleo/go-sqldb/badges/coverage.png?b=main)](https://scrutinizer-ci.com/g/cdleo/go-sqldb/?branch=main) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/cdleo/go-sqldb/badges/quality-score.png?b=main)](https://scrutinizer-ci.com/g/cdleo/go-sqldb/?branch=main)
 
-go-sqlDB it's a muti DB Engine wrapper for the GO **database/sql** package. It provides a set of standard error codes, providing abstraction from the implemented DB engine and allowing changing it (almost) just modifying configuration, without the need to modify source code.
-Besides that, provides a very limited cross-engine sql translator.
+go-sqlDB it's a muti DB Engine proxy for the GO **database/sql** package. It provides a set of standard error codes, providing abstraction from the implemented DB engine and allowing to switch it without modify the source code, just modifying configuration (almost).
+Besides that, provides a VERY LIMITED cross-engine sql syntax translator.
 
 ## General
-The sqlClient contract resides on the go-commons repository: [github.com/cdleo/go-commons/sqlcommons/sqlClient.go](https://github.com/cdleo/go-commons/sqlcommons/sqlClient.go):
-```go
-type SQLClient interface {
-	Open() error
-	Close()
-	IsOpen() error
-
-	Begin() (SQLTx, error)
-	BeginTx(ctx context.Context, opts *sql.TxOptions) (SQLTx, error)
-
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
-
-	Prepare(query string) (SQLStmt, error)
-	PrepareContext(ctx context.Context, query string) (SQLStmt, error)
-
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
-	QueryRow(query string, args ...interface{}) *sql.Row
-	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
-}
-```
+The sqlProxy it's created by the sqlProxyBuilder. The Open() function returns an standard *sql.DB implementation, 
+but using a proxy connector to the selected engine.
 
 **Supported Engines**
 Currently, the next set of engines are supported:
@@ -37,18 +17,19 @@ Currently, the next set of engines are supported:
 
 
 **Usage**
-This example program shows the initialization and the use at basic level:
+This example program shows initialization and usage at basic level:
 ```go
-package sqldb_test
+package sqldb
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 	"strconv"
 
-	"github.com/cdleo/go-sqldb"
-	"github.com/cdleo/go-sqldb/engines"
-	"github.com/cdleo/go-sqldb/translators"
+	"github.com/cdleo/go-commons/logger"
+	"github.com/cdleo/go-sqldb/adapter"
+	"github.com/cdleo/go-sqldb/connector"
 )
 
 type People struct {
@@ -57,19 +38,23 @@ type People struct {
 	Apellido string `db:"lastname"`
 }
 
-func Example_sqlConn() {
+func Example_sqlDBBuilder() {
 
-	adapter := engines.NewSqlite3Adapter(":memory:")
-	translator := translators.NewNoopTranslator()
-	sqlConn := sqldb.NewSQLDB(adapter, translator)
+	sqlProxy := NewSQLProxyBuilder(connector.NewSqlite3Connector(":memory:")).
+		WithAdapter(adapter.NewSQLite3Adapter()).
+		WithLogger(logger.NewNoLogLogger()).
+		Build()
 
-	if err := sqlConn.Open(); err != nil {
+	var sqlDB *sql.DB
+	var err error
+
+	if sqlDB, err = sqlProxy.Open(); err != nil {
 		fmt.Println("Unable to connect to DB")
 		os.Exit(1)
 	}
-	defer sqlConn.Close()
+	defer sqlProxy.Close()
 
-	statement, err := sqlConn.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
+	statement, err := sqlDB.Prepare("CREATE TABLE IF NOT EXISTS people (id INTEGER PRIMARY KEY, firstname TEXT, lastname TEXT)")
 	if err != nil {
 		fmt.Printf("Unable to prepare statement %v\n", err)
 		os.Exit(1)
@@ -80,7 +65,7 @@ func Example_sqlConn() {
 		os.Exit(1)
 	}
 
-	statement, err = sqlConn.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
+	statement, err = sqlDB.Prepare("INSERT INTO people (firstname, lastname) VALUES (?, ?)")
 	if err != nil {
 		fmt.Printf("Unable to prepare statement %v\n", err)
 		os.Exit(1)
@@ -91,7 +76,7 @@ func Example_sqlConn() {
 		os.Exit(1)
 	}
 
-	rows, err := sqlConn.Query("SELECT id, firstname, lastname FROM people")
+	rows, err := sqlDB.Query("SELECT id, firstname, lastname FROM people")
 	if err != nil {
 		fmt.Printf("Unable to query data %v\n", err)
 		os.Exit(1)
